@@ -27,6 +27,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.f_ludoga = 0
         self.f_shuka = 0
         self.f_big_shuka = 0
+        self.f_sudak = 0
+        self.f_big_sudak = 0
+
 
         self.count_fish = 0
 
@@ -37,6 +40,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ludoga_width = 0
         self.shuka_width = 0
         self.big_shuka_width = 0
+        self.sudak_width = 0
+        self.big_sudak_width = 0
 
         self.setFixedSize(800, 600)
 
@@ -44,6 +49,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnStopRipus.setVisible(False)
         self.ui.btnStopSig.setVisible(False)
         self.ui.btnStopShuka.setVisible(False)
+        self.ui.btnStopSudak.setVisible(False)
         self.ui.startLesh.clicked.connect(self.start_timer_lesh)
         self.ui.stopLesh.clicked.connect(self.stop_timer_lesh)
         self.ui.btnStartRipus.clicked.connect(self.start_timer_ripus)
@@ -52,6 +58,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnStopSig.clicked.connect(self.stop_timer_sig)
         self.ui.btnStartShuka.clicked.connect(self.start_timer_shuka)
         self.ui.btnStopShuka.clicked.connect(self.stop_timer_shuka)
+        self.ui.btnStartSudak.clicked.connect(self.start_timer_sudak)
+        self.ui.btnStopSudak.clicked.connect(self.stop_timer_sudak)
 
         self.ui.tableLesh.setRowCount(9)
         self.ui.tableGustera.setRowCount(3)
@@ -78,6 +86,80 @@ class MainWindow(QtWidgets.QMainWindow):
         # Таймер для вкладки Щука
         self.timer_shuka = QTimer()
         self.timer_shuka.timeout.connect(self.main_loop_shuka)
+
+        # Таймер для вкладки Судак
+        self.timer_sudak = QTimer()
+        self.timer_sudak.timeout.connect(self.main_loop_sudak)
+
+    # ---------------------------------- SUDAK_____________________________________________
+
+    def stop_timer_sudak(self):
+        self.ui.tableSudak.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.ui.tableBigSudak.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.sudak_width = 0
+        self.big_sudak_width = 0
+
+        self.ui.tableSudak.setRowCount(0)
+        self.ui.tableBigSudak.setRowCount(0)
+        self.count_fish = 0
+        self.ui.lcdSudak.display(str(self.count_fish))
+        self.ui.tableSudak.setRowCount(5)
+        self.ui.tableBigSudak.setRowCount(1)
+        self.f_sudak = 0
+        self.f_big_sudak = 0
+
+        self.ui.btnStopSudak.setVisible(False)
+        self.ui.btnStartSudak.setVisible(True)
+        self.timer_sudak.stop()
+
+    def start_timer_sudak(self):
+        self.ui.tableSudak.setRowCount(5)
+        self.ui.tableBigSudak.setRowCount(1)
+        self.ui.tableSudak.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.ui.tableBigSudak.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.ui.textBrowser_5.clear()
+        self.ui.btnStopSudak.setVisible(True)
+        self.ui.btnStartSudak.setVisible(False)
+        if "RF3.exe" in [p.name() for p in pu.process_iter()]:
+            self.timer_sudak.start(500)  # Запуск оснавного таймера
+
+        else:
+            self.timer_sudak.stop()
+            bot.alert('Запустите рыбалку')
+            self.ui.btnStartSudak.setVisible(True)
+            self.ui.btnStopSudak.setVisible(False)
+
+    def main_loop_sudak(self):
+        # Основной цикл вылова (Судак)
+        try:
+            ulov = fish_tank()
+            width_f = float(ulov[1].split()[1].replace(',', '.'))
+            if width_f < 100:
+                width_f *= 1000
+
+            if str(ulov[0]) == 'Судак' and width_f >= 9000 and self.f_sudak < 5:
+                self.ui.tableSudak.setItem(self.f_sudak, 0, QTableWidgetItem('Судак'))
+                self.ui.tableSudak.setItem(self.f_sudak, 1, QTableWidgetItem(str(int(width_f))))
+                self.f_sudak += 1
+            if self.f_sudak > 4:
+                self.ui.tableSudak.setStyleSheet("background-color: rgb(0, 170, 0);")
+
+            if str(ulov[0]) == 'Глубинный судак' and self.f_shuka < 1:
+                self.ui.tableBigSudak.setItem(self.f_big_sudak, 0, QTableWidgetItem('Глубинный судак'))
+                self.ui.tableBigSudak.setItem(self.f_big_sudak, 1, QTableWidgetItem(str(int(width_f))))
+                self.f_big_sudak += 1
+            if self.f_big_sudak > 0:
+                self.ui.tableBigSudak.setStyleSheet("background-color: rgb(0, 170, 0);")
+
+            self.count_fish += 1
+            self.ui.textBrowser_5.append(f'{ulov[0]}, {ulov[1]}')
+            self.ui.lcdSudak.display(str(self.count_fish))
+
+        except:
+            pass
+
+    # ------------------------------- END SUDAK_____________________________________________
+
 
     # ---------------------------------- SHUKA_____________________________________________
 
