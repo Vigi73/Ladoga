@@ -1,8 +1,11 @@
 import pyautogui as bot
 import pytesseract
 
+
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files (x86)\Tesseract-OCR\tesseract.exe'
+
 x, y = bot.size()
-x = (x // 2) - 401
+x = (x // 2) - 402
 y = (y // 2) - 319
 
 x_value = x + 33
