@@ -29,6 +29,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.f_big_shuka = 0
         self.f_sudak = 0
         self.f_big_sudak = 0
+        self.f_ugor = 0
 
 
         self.count_fish = 0
@@ -42,6 +43,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.big_shuka_width = 0
         self.sudak_width = 0
         self.big_sudak_width = 0
+        self.ugor_width = 0
 
         self.setFixedSize(800, 600)
 
@@ -50,6 +52,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnStopSig.setVisible(False)
         self.ui.btnStopShuka.setVisible(False)
         self.ui.btnStopSudak.setVisible(False)
+        self.ui.btnStopUgor.setVisible(False)
         self.ui.startLesh.clicked.connect(self.start_timer_lesh)
         self.ui.stopLesh.clicked.connect(self.stop_timer_lesh)
         self.ui.btnStartRipus.clicked.connect(self.start_timer_ripus)
@@ -60,6 +63,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnStopShuka.clicked.connect(self.stop_timer_shuka)
         self.ui.btnStartSudak.clicked.connect(self.start_timer_sudak)
         self.ui.btnStopSudak.clicked.connect(self.stop_timer_sudak)
+        self.ui.btnStartUgor.clicked.connect(self.start_timer_ugor)
+        self.ui.btnStopUgor.clicked.connect(self.stop_timer_ugor)
+
 
         self.ui.tableLesh.setRowCount(9)
         self.ui.tableGustera.setRowCount(3)
@@ -90,6 +96,66 @@ class MainWindow(QtWidgets.QMainWindow):
         # Таймер для вкладки Судак
         self.timer_sudak = QTimer()
         self.timer_sudak.timeout.connect(self.main_loop_sudak)
+
+        # Таймер для вкладки Угорь
+        self.timer_ugor = QTimer()
+        self.timer_ugor.timeout.connect(self.main_loop_ugor)
+
+    # ---------------------------------- UGOR_____________________________________________
+    def stop_timer_ugor(self):
+        self.ui.tableUgor.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.ugor_width = 0
+
+        self.ui.tableUgor.setRowCount(0)
+        self.count_fish = 0
+        self.ui.lcdUgor.display(str(self.count_fish))
+        self.ui.tableUgor.setRowCount(5)
+        self.f_ugor = 0
+
+        self.ui.btnStopUgor.setVisible(False)
+        self.ui.btnStartUgor.setVisible(True)
+        self.timer_ugor.stop()
+
+    def start_timer_ugor(self):
+        self.ui.tableUgor.setRowCount(5)
+        self.ui.tableUgor.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.ui.textBrowser_6.clear()
+        self.ui.btnStopUgor.setVisible(True)
+        self.ui.btnStartUgor.setVisible(False)
+        if "RF3.exe" in [p.name() for p in pu.process_iter()]:
+            self.timer_ugor.start(500)  # Запуск оснавного таймера
+
+        else:
+            self.timer_ugor.stop()
+            bot.alert('Запустите рыбалку')
+            self.ui.btnStartUgor.setVisible(True)
+            self.ui.btnStopUgor.setVisible(False)
+
+    def main_loop_ugor(self):
+        # Основной цикл вылова (Угорь)
+        try:
+            ulov = fish_tank()
+            width_f = float(ulov[1].split()[1].replace(',', '.'))
+            if width_f < 100:
+                width_f *= 1000
+
+            if str(ulov[0]) == 'Угорь' and (7000 >= width_f >= 5000) and self.f_ugor < 5:
+                self.ui.tableUgor.setItem(self.f_ugor, 0, QTableWidgetItem('Угорь'))
+                self.ui.tableUgor.setItem(self.f_ugor, 1, QTableWidgetItem(str(int(width_f))))
+                self.f_ugor += 1
+            if self.f_ugor > 4:
+                self.ui.tableUgor.setStyleSheet("background-color: rgb(0, 170, 0);")
+
+            self.count_fish += 1
+            self.ui.textBrowser_6.append(f'{ulov[0]}, {ulov[1]}')
+            self.ui.lcdUgor.display(str(self.count_fish))
+
+        except:
+            pass
+
+
+    # ---------------------------------- END UGOR_________________________________________
+
 
     # ---------------------------------- SUDAK_____________________________________________
 
