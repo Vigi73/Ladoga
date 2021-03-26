@@ -30,6 +30,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.f_sudak = 0
         self.f_big_sudak = 0
         self.f_ugor = 0
+        self.f_losos = 0
+        self.f_paliya = 0
+        self.f_ludoznaya_paliya = 0
+        self.f_krayznaya_paliya = 0
 
 
         self.count_fish = 0
@@ -44,6 +48,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.sudak_width = 0
         self.big_sudak_width = 0
         self.ugor_width = 0
+        self.losos_width = 0
+        self.paliya_width = 0
+        self.ludoznaya_paliya_width = 0
+        self.kryaznaya_paliya_width = 0
 
         self.setFixedSize(800, 600)
 
@@ -53,6 +61,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnStopShuka.setVisible(False)
         self.ui.btnStopSudak.setVisible(False)
         self.ui.btnStopUgor.setVisible(False)
+        self.ui.btnStopLosos.setVisible(False)
+        self.ui.btnStopPaliya.setVisible(False)
         self.ui.startLesh.clicked.connect(self.start_timer_lesh)
         self.ui.stopLesh.clicked.connect(self.stop_timer_lesh)
         self.ui.btnStartRipus.clicked.connect(self.start_timer_ripus)
@@ -65,7 +75,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnStopSudak.clicked.connect(self.stop_timer_sudak)
         self.ui.btnStartUgor.clicked.connect(self.start_timer_ugor)
         self.ui.btnStopUgor.clicked.connect(self.stop_timer_ugor)
-
+        self.ui.btnStartLosos.clicked.connect(self.start_timer_losos)
+        self.ui.btnStopLosos.clicked.connect(self.stop_timer_losos)
+        self.ui.btnStartPaliya.clicked.connect(self.start_timer_paliya)
+        self.ui.btnStopPaliya.clicked.connect(self.stop_timer_paliya)
 
         self.ui.tableLesh.setRowCount(9)
         self.ui.tableGustera.setRowCount(3)
@@ -100,6 +113,156 @@ class MainWindow(QtWidgets.QMainWindow):
         # Таймер для вкладки Угорь
         self.timer_ugor = QTimer()
         self.timer_ugor.timeout.connect(self.main_loop_ugor)
+
+        # Таймер для вкладки Лосось
+        self.timer_losos = QTimer()
+        self.timer_losos.timeout.connect(self.main_loop_losos)
+
+        # Таймер для вкладки Палия
+        self.timer_paliya = QTimer()
+        self.timer_paliya.timeout.connect(self.main_loop_paliya)
+
+    # ---------------------------------- PALIYA_____________________________________________
+    def stop_timer_paliya(self):
+        self.ui.tablePaliya.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.ui.tableLudoznayaPaliya.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.ui.tableKryazhevayaPaliya.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.paliya_width = 0
+        self.ludoznaya_paliya_width = 0
+        self.kryaznaya_paliya_width = 0
+
+        self.ui.tablePaliya.setRowCount(0)
+        self.ui.tableLudoznayaPaliya.setRowCount(0)
+        self.ui.tableKryazhevayaPaliya.setRowCount(0)
+        self.count_fish = 0
+        self.ui.lcdPaliya.display(str(self.count_fish))
+        self.ui.tablePaliya.setRowCount(4)
+        self.ui.tableLudoznayaPaliya.setRowCount(3)
+        self.ui.tableKryazhevayaPaliya.setRowCount(2)
+        self.f_paliya = 0
+        self.f_ludoznaya_paliya = 0
+        self.f_krayznaya_paliya = 0
+
+        self.ui.btnStopPaliya.setVisible(False)
+        self.ui.btnStartPaliya.setVisible(True)
+        self.timer_paliya.stop()
+
+    def start_timer_paliya(self):
+        self.ui.tablePaliya.setRowCount(4)
+        self.ui.tableLudoznayaPaliya.setRowCount(3)
+        self.ui.tableKryazhevayaPaliya.setRowCount(2)
+
+        self.ui.tablePaliya.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.ui.tableLudoznayaPaliya.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.ui.tableKryazhevayaPaliya.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.ui.textBrowser_8.clear()
+        self.ui.btnStopPaliya.setVisible(True)
+        self.ui.btnStartPaliya.setVisible(False)
+        if "RF3.exe" in [p.name() for p in pu.process_iter()]:
+            self.timer_paliya.start(500)  # Запуск оснавного таймера
+
+        else:
+            self.timer_paliya.stop()
+            bot.alert('Запустите рыбалку')
+            self.ui.btnStartPaliya.setVisible(True)
+            self.ui.btnStopPaliya.setVisible(False)
+
+
+    def main_loop_paliya(self):
+        # Основной цикл вылова (Палия)
+        try:
+            ulov = fish_tank()
+            width_f = float(ulov[1].split()[1].replace(',', '.'))
+            if width_f < 100:
+                width_f *= 1000
+
+            if str(ulov[0]) == 'Палия' and width_f >= 2000 and self.f_paliya < 4:
+                self.ui.tablePaliya.setItem(self.f_paliya, 0, QTableWidgetItem("Палия"))
+                self.ui.tablePaliya.setItem(self.f_paliya, 1, QTableWidgetItem(str(int(width_f))))
+                self.f_paliya += 1
+            if self.f_paliya > 3:
+                self.ui.tablePaliya.setStyleSheet("background-color: rgb(0, 170, 0);")
+
+            if str(ulov[0]) == 'Лудожная палия' and width_f >= 2500 and self.f_ludoznaya_paliya < 3:
+                self.ui.tableLudoznayaPaliya.setItem(self.f_ludoznaya_paliya, 0, QTableWidgetItem("Лудожная палия"))
+                self.ui.tableLudoznayaPaliya.setItem(self.f_ludoznaya_paliya, 1, QTableWidgetItem(str(int(width_f))))
+                self.f_ludoznaya_paliya += 1
+            if self.f_ludoznaya_paliya > 2:
+                self.ui.tableLudoznayaPaliya.setStyleSheet("background-color: rgb(0, 170, 0);")
+
+            if str(ulov[0]) == 'Кряжевая палия' and width_f >= 1500 and self.f_krayznaya_paliya < 2:
+                self.ui.tableKryazhevayaPaliya.setItem(self.f_krayznaya_paliya, 0, QTableWidgetItem("Кряжевая палия"))
+                self.ui.tableKryazhevayaPaliya.setItem(self.f_krayznaya_paliya, 1, QTableWidgetItem(str(int(width_f))))
+                self.f_krayznaya_paliya += 1
+            if self.f_krayznaya_paliya > 2:
+                self.ui.tableKryazhevayaPaliya.setStyleSheet("background-color: rgb(0, 170, 0);")
+
+            self.count_fish += 1
+            self.ui.textBrowser_8.append(f'{ulov[0]}, {ulov[1]}')
+            self.ui.lcdPaliya.display(str(self.count_fish))
+
+        except:
+            pass
+
+
+    # ---------------------------------END PALIYA___________________________________________
+
+    # ---------------------------------- LOSOS_____________________________________________
+    def stop_timer_losos(self):
+        self.ui.tableLosos.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.ugor_width = 0
+
+        self.ui.tableLosos.setRowCount(0)
+        self.count_fish = 0
+        self.ui.lcdLosos.display(str(self.count_fish))
+        self.ui.tableLosos.setRowCount(5)
+        self.f_losos = 0
+
+        self.ui.btnStopLosos.setVisible(False)
+        self.ui.btnStartLosos.setVisible(True)
+        self.timer_losos.stop()
+
+
+    def start_timer_losos(self):
+        self.ui.tableLosos.setRowCount(5)
+        self.ui.tableLosos.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.ui.textBrowser_7.clear()
+        self.ui.btnStopLosos.setVisible(True)
+        self.ui.btnStartLosos.setVisible(False)
+        if "RF3.exe" in [p.name() for p in pu.process_iter()]:
+            self.timer_losos.start(500)  # Запуск оснавного таймера
+
+        else:
+            self.timer_losos.stop()
+            bot.alert('Запустите рыбалку')
+            self.ui.btnStartLosos.setVisible(True)
+            self.ui.btnStopLosos.setVisible(False)
+
+
+    def main_loop_losos(self):
+        # Основной цикл вылова (Лосось)
+        try:
+            ulov = fish_tank()
+            width_f = float(ulov[1].split()[1].replace(',', '.'))
+            if width_f < 100:
+                width_f *= 1000
+
+            if str(ulov[0]) == 'Лосось' and width_f >= 15000 and self.f_ugor < 5:
+                self.ui.tableLosos.setItem(self.f_losos, 0, QTableWidgetItem("Лосось"))
+                self.ui.tableLosos.setItem(self.f_losos, 1, QTableWidgetItem(str(int(width_f))))
+                self.f_losos += 1
+            if self.f_losos > 4:
+                self.ui.tableLosos.setStyleSheet("background-color: rgb(0, 170, 0);")
+
+            self.count_fish += 1
+            self.ui.textBrowser_7.append(f'{ulov[0]}, {ulov[1]}')
+            self.ui.lcdLosos.display(str(self.count_fish))
+
+        except:
+            pass
+
+    # ---------------------------------- END LOSOS_____________________________________________
+
 
     # ---------------------------------- UGOR_____________________________________________
     def stop_timer_ugor(self):
