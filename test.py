@@ -1,8 +1,7 @@
-import pytesseract
-from PIL import Image
-
-img = Image.open('my_screenshot.png')
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files (x86)\Tesseract-OCR\tesseract.exe'
-
-answer = pytesseract.image_to_string(img, lang='rus')
-print(answer)
+while True:
+    width_f = float(input(':'))
+    if width_f < 1000 and width_f == int(width_f):
+        pass
+    else:
+        width_f *= 1000
+    print(width_f)

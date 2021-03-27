@@ -34,6 +34,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.f_paliya = 0
         self.f_ludoznaya_paliya = 0
         self.f_krayznaya_paliya = 0
+        self.f_osetr = 0
 
 
         self.count_fish = 0
@@ -52,6 +53,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.paliya_width = 0
         self.ludoznaya_paliya_width = 0
         self.kryaznaya_paliya_width = 0
+        self.osetr_width = 0
 
         self.setFixedSize(800, 600)
 
@@ -63,6 +65,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnStopUgor.setVisible(False)
         self.ui.btnStopLosos.setVisible(False)
         self.ui.btnStopPaliya.setVisible(False)
+        self.ui.btnStopOsetr.setVisible(False)
         self.ui.startLesh.clicked.connect(self.start_timer_lesh)
         self.ui.stopLesh.clicked.connect(self.stop_timer_lesh)
         self.ui.btnStartRipus.clicked.connect(self.start_timer_ripus)
@@ -79,6 +82,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.btnStopLosos.clicked.connect(self.stop_timer_losos)
         self.ui.btnStartPaliya.clicked.connect(self.start_timer_paliya)
         self.ui.btnStopPaliya.clicked.connect(self.stop_timer_paliya)
+        self.ui.btnStartOsetr.clicked.connect(self.start_timer_osetr)
+        self.ui.btnStopOsetr.clicked.connect(self.stop_timer_osetr)
 
         self.ui.tableLesh.setRowCount(9)
         self.ui.tableGustera.setRowCount(3)
@@ -121,6 +126,71 @@ class MainWindow(QtWidgets.QMainWindow):
         # Таймер для вкладки Палия
         self.timer_paliya = QTimer()
         self.timer_paliya.timeout.connect(self.main_loop_paliya)
+
+        # Таймер для вкладки Осетр
+        self.timer_osetr = QTimer()
+        self.timer_osetr.timeout.connect(self.main_loop_osetr)
+
+    # ---------------------------------- OSETR_____________________________________________
+    def stop_timer_osetr(self):
+        self.ui.tableOsetr.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.osetr_width = 0
+
+        self.ui.tableOsetr.setRowCount(0)
+        self.count_fish = 0
+        self.ui.lcdOsetr.display(str(self.count_fish))
+        self.ui.tableOsetr.setRowCount(5)
+        self.f_osetr = 0
+
+        self.ui.btnStopPaliya.setVisible(False)
+        self.ui.btnStartPaliya.setVisible(True)
+        self.timer_paliya.stop()
+
+
+    def start_timer_osetr(self):
+        self.ui.tableOsetr.setRowCount(5)
+
+        self.ui.tableOsetr.setStyleSheet("background-color: rgb(170, 170, 127);")
+        self.ui.textBrowser_9.clear()
+        self.ui.btnStopOsetr.setVisible(True)
+        self.ui.btnStartOsetr.setVisible(False)
+        if "RF3.exe" in [p.name() for p in pu.process_iter()]:
+            self.timer_osetr.start(500)  # Запуск оснавного таймера
+
+        else:
+            self.timer_osetr.stop()
+            bot.alert('Запустите рыбалку')
+            self.ui.btnStartOsetr.setVisible(True)
+            self.ui.btnStopOsetr.setVisible(False)
+
+
+    def main_loop_osetr(self):
+        # Основной цикл вылова (Палия)
+        try:
+            ulov = fish_tank()
+            width_f = float(ulov[1].split()[1].replace(',', '.'))
+            if width_f < 1000 and width_f == int(width_f):
+                pass
+            else:
+                width_f *= 1000
+
+            if str(ulov[0]) == 'Атлантический Осетр' and width_f >= 200000 and self.f_osetr < 5:
+                self.ui.tableOsetr.setItem(self.f_osetr, 0, QTableWidgetItem("Атлантический Осетр"))
+                self.ui.tableOsetr.setItem(self.f_osetr, 1, QTableWidgetItem(str(int(width_f))))
+                self.f_osetr += 1
+            if self.f_osetr > 4:
+                self.ui.tableOsetr.setStyleSheet("background-color: rgb(0, 170, 0);")
+
+
+            self.count_fish += 1
+            self.ui.textBrowser_9.append(f'{ulov[0]}, {ulov[1]}')
+            self.ui.lcdOsetr.display(str(self.count_fish))
+
+        except:
+            pass
+
+
+    # ---------------------------------- END OSETR_________________________________________
 
     # ---------------------------------- PALIYA_____________________________________________
     def stop_timer_paliya(self):
@@ -173,7 +243,9 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             ulov = fish_tank()
             width_f = float(ulov[1].split()[1].replace(',', '.'))
-            if width_f < 100:
+            if width_f < 1000 and width_f == int(width_f):
+                pass
+            else:
                 width_f *= 1000
 
             if str(ulov[0]) == 'Палия' and width_f >= 2000 and self.f_paliya < 4:
@@ -194,7 +266,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.ui.tableKryazhevayaPaliya.setItem(self.f_krayznaya_paliya, 0, QTableWidgetItem("Кряжевая палия"))
                 self.ui.tableKryazhevayaPaliya.setItem(self.f_krayznaya_paliya, 1, QTableWidgetItem(str(int(width_f))))
                 self.f_krayznaya_paliya += 1
-            if self.f_krayznaya_paliya > 2:
+            if self.f_krayznaya_paliya > 1:
                 self.ui.tableKryazhevayaPaliya.setStyleSheet("background-color: rgb(0, 170, 0);")
 
             self.count_fish += 1
@@ -244,7 +316,9 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             ulov = fish_tank()
             width_f = float(ulov[1].split()[1].replace(',', '.'))
-            if width_f < 100:
+            if width_f < 1000 and width_f == int(width_f):
+                pass
+            else:
                 width_f *= 1000
 
             if str(ulov[0]) == 'Лосось' and width_f >= 15000 and self.f_ugor < 5:
@@ -363,7 +437,9 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             ulov = fish_tank()
             width_f = float(ulov[1].split()[1].replace(',', '.'))
-            if width_f < 100:
+            if width_f < 1000 and width_f == int(width_f):
+                pass
+            else:
                 width_f *= 1000
 
             if str(ulov[0]) == 'Судак' and width_f >= 9000 and self.f_sudak < 5:
@@ -434,7 +510,9 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             ulov = fish_tank()
             width_f = float(ulov[1].split()[1].replace(',', '.'))
-            if width_f < 100:
+            if width_f < 1000 and width_f == int(width_f):
+                pass
+            else:
                 width_f *= 1000
 
             if str(ulov[0]) == 'Щука' and width_f >= 15000 and self.f_shuka < 5:
@@ -510,7 +588,9 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             ulov = fish_tank()
             width_f = float(ulov[1].split()[1].replace(',', '.'))
-            if width_f < 10:
+            if width_f < 1000 and width_f == int(width_f):
+                pass
+            else:
                 width_f *= 1000
 
             if str(ulov[0]) == 'Рыбец' and width_f >= 250 and self.f_rybec < 8:
@@ -584,7 +664,9 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             ulov = fish_tank()
             width_f = float(ulov[1].split()[1].replace(',', '.'))
-            if width_f < 10:
+            if width_f < 1000 and width_f == int(width_f):
+                pass
+            else:
                 width_f *= 1000
 
             if str(ulov[0]) == 'Рипус':
@@ -662,9 +744,13 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             ulov = fish_tank()
             width_f = float(ulov[1].split()[1].replace(',', '.'))
+            if width_f < 1000 and width_f == int(width_f):
+                pass
+            else:
+                width_f *= 1000
 
             """Если лещ"""
-            if str(ulov[0]) == 'Лещ' and width_f >= 5 and self.f_lesh < 9:
+            if str(ulov[0]) == 'Лещ' and width_f >= 5000 and self.f_lesh < 9:
                 self.ui.tableLesh.setItem(self.f_lesh, 0, QTableWidgetItem('Лещ'))
                 self.ui.tableLesh.setItem(self.f_lesh, 1, QTableWidgetItem(str(width_f)))
                 self.f_lesh += 1
